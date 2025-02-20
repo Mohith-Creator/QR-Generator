@@ -16,28 +16,28 @@ export default function QRCodeGenerator() {
   }, [mode]);
 
   useEffect(() => {
-    return () => {
-      if (qrCode) {
-        URL.revokeObjectURL(qrCode);
-      }
-    };
+    if (qrCode) {
+      return () => URL.revokeObjectURL(qrCode);
+    }
   }, [qrCode]);
 
-  const SERVER_URL = "https://qr-code-backend-vkg3.onrender.com"; // ✅ Updated server URL
+  const SERVER_URL = "https://qr-generator-xroo.onrender.com"; // ✅ Updated server URL
 
   // ✅ Upload file & get file URL
   const uploadFile = async (file) => {
-    console.log("📂 File to be uploaded:", file); // 🔍 Debugging step
-
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
+      const formData = new FormData();
+      formData.append("file", file);
       const response = await axios.post(`${SERVER_URL}/upload`, formData);
-      console.log("✅ File upload response:", response.data);
+
+      if (!response.data || !response.data.fileUrl) {
+        throw new Error("File URL missing in response.");
+      }
+
       return response.data.fileUrl;
     } catch (error) {
       console.error("❌ File upload failed:", error);
+      return null; // Return null explicitly to handle failure
     }
   };
 

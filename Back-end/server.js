@@ -8,7 +8,8 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 require("dotenv").config();
 
 const app = express();
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: "https://qr-generator-seven-tawny.vercel.app/" })); // Replace with your actual Vercel URL
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -31,6 +32,14 @@ const storage = new CloudinaryStorage({
   },
 });
 
+const requiredEnvVars = ["CLOUD_NAME", "API_KEY", "API_SECRET"];
+requiredEnvVars.forEach((envVar) => {
+  if (!process.env[envVar]) {
+    console.error(`❌ Missing environment variable: ${envVar}`);
+    process.exit(1); // Exit the process if critical env vars are missing
+  }
+});
+
 const upload = multer({ storage });
 
 // ✅ File Upload Endpoint
@@ -46,21 +55,16 @@ app.post("/upload", upload.single("file"), (req, res) => {
   res.json({ fileUrl: req.file.path }); // Cloudinary URL
 });
 
-// ✅ QR Code Generation Endpoint
 app.post("/generate", (req, res) => {
-  const { url } = req.body;
-  console.log("🔹 Received request with URL:", url);
-
-  if (!url) {
-    console.error("❌ Error: No URL received");
-    return res.status(400).json({ error: "URL is required" });
-  }
-
   try {
+    const { url } = req.body;
+    if (!url) {
+      return res.status(400).json({ error: "URL is required" });
+    }
+
     console.log(`✅ Generating QR for: ${url}`);
     const qrImage = qr.image(url, { type: "png" });
 
-    // 📥 Force download in browser
     res.setHeader("Content-Type", "image/png");
     res.setHeader("Content-Disposition", 'attachment; filename="qr_code.png"');
 
@@ -70,7 +74,6 @@ app.post("/generate", (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 
 // ✅ Start Server
 const PORT = process.env.PORT || 5000;
