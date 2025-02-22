@@ -52,7 +52,7 @@ app.post("/upload", upload.single("file"), (req, res) => {
   }
 
   console.log("📂 Uploaded file details:", req.file);
-  res.json({ fileUrl: req.file.path }); // Cloudinary URL
+  res.json({ fileUrl: req.file.url }); // Cloudinary URL
 });
 
 app.post("/generate", (req, res) => {
